@@ -2,9 +2,9 @@ package com.chymeravr.analytics.eventjoin;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.chymeravr.serving.thrift.ServingLog;
-import com.chymeravr.thrift.eventreceiver.EventLog;
-import org.apache.commons.codec.binary.Base64;
+import com.chymeravr.schemas.eventreceiver.EventLog;
+import com.chymeravr.schemas.kafka.JoinedEvent;
+import com.chymeravr.schemas.serving.ServingLog;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
@@ -55,21 +55,16 @@ public class Job {
         KStream<String, String> joinedEvent = events.join(
                 serve,
                 (eventLogSer, serveLogSer) -> {
-                    EventLog eventLog = null;
-                    ServingLog servingLog = null;
                     try {
-                        eventLog = Utils.getThriftObject(EventLog.class, Base64.decodeBase64(eventLogSer));
-                        servingLog = Utils.getThriftObject(ServingLog.class, Base64.decodeBase64(serveLogSer));
+                        ServingLog servingLog = Utils.deserializeBase64Thrift(ServingLog.class, serveLogSer);
+                        EventLog eventLog = Utils.deserializeBase64Thrift(EventLog.class, eventLogSer);
+                        return Utils.serializeBase64Thrift(new JoinedEvent(servingLog, eventLog));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    return new JoinedEvent(servingLog, eventLog).toString();
+                    return null;
                 },
                 JoinWindows.of(joinwindow));
-
-        joinedEvent.foreach((k, v) -> {
-            System.out.println(k + " :: " + v);
-        });
 
         joinedEvent.to(joinedTopicName);
 

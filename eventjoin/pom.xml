@@ -45,13 +45,8 @@
             <version>1.60</version>
         </dependency>
         <dependency>
-            <groupId>com.chymeravr.serving</groupId>
-            <artifactId>thrift</artifactId>
-            <version>0.5-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.chymeravr.eventreceiver</groupId>
-            <artifactId>thrift</artifactId>
+            <groupId>com.chymeravr.schemas</groupId>
+            <artifactId>schemas</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
