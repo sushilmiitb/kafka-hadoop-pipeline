@@ -1,4 +1,4 @@
-package com.chymeravr.analytics.eventjoin;
+package com.chymeravr.analytics.kconnect;
 
 import io.confluent.connect.avro.AvroData;
 import io.confluent.connect.hdfs.*;

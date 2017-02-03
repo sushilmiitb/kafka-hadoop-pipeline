@@ -46,7 +46,7 @@ public class Job {
         String eventTopicName = config.getString("eventTopic");
         String serverTopicName = config.getString("serveTopic");
         String joinedTopicName = config.getString("joinedTopic");
-        int joinwindow = config.getInt("joinWindow");
+        int joinWindow = config.getInt("joinWindow");
 
         KStreamBuilder builder = new KStreamBuilder();
         KStream<String, String> events = builder.stream(eventTopicName);
@@ -64,7 +64,7 @@ public class Job {
                     }
                     return null;
                 },
-                JoinWindows.of(joinwindow));
+                JoinWindows.of(joinWindow));
 
         joinedEvent.to(joinedTopicName);
 
