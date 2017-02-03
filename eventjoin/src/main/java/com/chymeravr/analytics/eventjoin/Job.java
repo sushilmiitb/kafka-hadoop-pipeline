@@ -3,7 +3,7 @@ package com.chymeravr.analytics.eventjoin;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.chymeravr.schemas.eventreceiver.EventLog;
-import com.chymeravr.schemas.kafka.JoinedEvent;
+import com.chymeravr.schemas.kafka.AttributedEvent;
 import com.chymeravr.schemas.serving.ServingLog;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
@@ -58,7 +58,7 @@ public class Job {
                     try {
                         ServingLog servingLog = Utils.deserializeBase64Thrift(ServingLog.class, serveLogSer);
                         EventLog eventLog = Utils.deserializeBase64Thrift(EventLog.class, eventLogSer);
-                        return Utils.serializeBase64Thrift(new JoinedEvent(servingLog, eventLog));
+                        return Utils.serializeBase64Thrift(new AttributedEvent(servingLog, eventLog));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
