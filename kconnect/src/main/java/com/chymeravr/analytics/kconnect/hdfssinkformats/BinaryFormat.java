@@ -1,4 +1,4 @@
-package com.chymeravr.analytics.kconnect;
+package com.chymeravr.analytics.kconnect.hdfssinkformats;
 
 import io.confluent.connect.avro.AvroData;
 import io.confluent.connect.hdfs.*;
@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Created by rubbal on 2/2/17.
  */
-public class JoinedEventFormat implements Format {
+public class BinaryFormat implements Format {
     private final String separator = " ";
 
     @Override
