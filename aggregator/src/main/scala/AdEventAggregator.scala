@@ -53,9 +53,10 @@ object AdEventAggregator {
     }
 
     logger.info(f"Potential input folders: $fileNamesBuilder")
-    fileNamesBuilder = fileNamesBuilder.filter(path => fs.exists(new Path(path)))
 
-    logger.info(f"Existing input folders: ")
+    fileNamesBuilder = fileNamesBuilder.filter(path => fs.exists(new Path(path)))
+    logger.info(f"Existing input folders: $fileNamesBuilder")
+
     val fileNames = fileNamesBuilder.mkString(",").toString
 
     logger.info(f"Current time: $currentDateTime")
@@ -69,42 +70,47 @@ object AdEventAggregator {
     // Filter older events and no need to aggregate ad_view_metrics
     filteredEvents = filteredEvents.filter(event => event.getServingLog.timestamp > windowStartTimeEpoch &&
       event.eventLog.eventType != EventType.AD_VIEW_METRICS)
+
+    // Dedupe events by key and take the head of all events
+    filteredEvents = filteredEvents.groupBy(x => (x.eventLog.getAdServingMeta, x.eventLog.eventType)).map(x => x._2.head)
+    
     val instrumentedEvents = filteredEvents.map(calculateMetrics)
     val aggregates = instrumentedEvents.reduceByKey((a, b) => {
       val metrics = new Metrics()
+      metrics.setImpressions(a.impressions + b.impressions)
       metrics.setClicks(a.clicks + b.clicks)
       metrics.setAmount(a.amount + b.amount)
       metrics.setErrors(a.errors + b.errors)
     })
 
     aggregates.collect().foreach(x => logger.info(x._1 + "::" + x._2))
-
     logger.info("Shut down app")
 
   }
 
-  def calculateMetrics(event: AttributedEvent): (AttributedEvent, Metrics) = {
+  def calculateMetrics(event: AttributedEvent): (HourlyDimension, Metrics) = {
     val ts = event.getServingLog.timestamp
+    val impressionInfo = event.servingLog.impressionInfo
     val serveTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneId.of("UTC"))
     val dimension = new HourlyDimension(new HourlyTimestamp(serveTime.getYear.toShort,
       serveTime.getMonth.getValue.toShort, serveTime.getDayOfMonth.toShort, serveTime.getHour.toShort),
-      event.getServingLog.impressionInfo.adId)
+      impressionInfo.adId)
 
     val metrics = event.eventLog.eventType match {
       case EventType.AD_CLICK =>
         val m = new Metrics()
         m.setClicks(1)
-        m.setAmount(event.servingLog.impressionInfo.costPrice)
+        m.setAmount(impressionInfo.costPrice)
       case EventType.AD_SHOW =>
         val m = new Metrics()
         m.setImpressions(1)
-        m.setAmount(event.servingLog.impressionInfo.costPrice)
+        m.setAmount(impressionInfo.costPrice)
       case EventType.AD_CLOSE => val m = new Metrics(); m.setClose(1)
       case EventType.ERROR => val m = new Metrics(); m.setErrors(1)
     }
 
     metrics.setAmount(event.getServingLog.getImpressionInfo.getCostPrice)
-    (dimension, metrics, ts)
+    (dimension, metrics)
   }
 
   def parseEvent(line: String): Try[AttributedEvent] = {
