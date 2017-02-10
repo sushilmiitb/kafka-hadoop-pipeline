@@ -73,7 +73,7 @@ object AdEventAggregator {
 
     // Dedupe events by key and take the head of all events
     filteredEvents = filteredEvents.groupBy(x => (x.eventLog.getAdServingMeta, x.eventLog.eventType)).map(x => x._2.head)
-    
+
     val instrumentedEvents = filteredEvents.map(calculateMetrics)
     val aggregates = instrumentedEvents.reduceByKey((a, b) => {
       val metrics = new Metrics()
