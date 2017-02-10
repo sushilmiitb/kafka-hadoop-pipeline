@@ -81,6 +81,7 @@ object AdEventAggregator {
       metrics.setClicks(a.clicks + b.clicks)
       metrics.setAmount(a.amount + b.amount)
       metrics.setErrors(a.errors + b.errors)
+      metrics.setClose(a.close + b.close)
     })
 
     aggregates.collect().foreach(x => logger.info(x._1 + "::" + x._2))
