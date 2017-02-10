@@ -2,7 +2,6 @@
   * Created by rubbal on 4/2/17.
   */
 
-import java.beans.Transient
 import java.net.URI
 import java.time.{Duration, Instant, ZoneId, ZonedDateTime}
 import java.util.Base64
@@ -84,7 +83,7 @@ abstract class AbstractAggregator extends Serializable {
       metrics.setClose(a.close + b.close)
     })
 
-    aggregates.collect().foreach(x => logger.info(x._1 + "::" + x._2))
+    process(aggregates.toLocalIterator)
     logger.info("Shut down app")
 
   }
@@ -95,7 +94,7 @@ abstract class AbstractAggregator extends Serializable {
     val serveTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneId.of("UTC"))
     val dimension = new HourlyDimension(new HourlyTimestamp(serveTime.getYear.toShort,
       serveTime.getMonth.getValue.toShort, serveTime.getDayOfMonth.toShort, serveTime.getHour.toShort),
-      impressionInfo.adId)
+      getId(event))
 
     val metrics = event.eventLog.eventType match {
       case EventType.AD_CLICK =>
@@ -114,7 +113,9 @@ abstract class AbstractAggregator extends Serializable {
     (dimension, metrics)
   }
 
-  def getId(attributedEvent: AttributedEvent): String = ???
+  def getId(attributedEvent: AttributedEvent): String
+
+  def process(records: Iterator[(HourlyDimension, Metrics)])
 
   def parseEvent(line: String): Try[AttributedEvent] = {
     Try {

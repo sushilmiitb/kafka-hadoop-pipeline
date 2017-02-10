@@ -6,9 +6,9 @@ import scalaj.http.{Http, HttpOptions}
 /**
   * Created by rubbal on 10/2/17.
   */
-object AdEventAggregator extends AbstractAggregator {
+object PlacementEventAggregator extends AbstractAggregator {
   override def getId(attributedEvent: AttributedEvent): String = {
-    attributedEvent.servingLog.impressionInfo.adId
+    attributedEvent.servingLog.placementId
   }
 
   override def process(records: Iterator[(HourlyDimension, Metrics)]): Unit = {

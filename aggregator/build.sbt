@@ -10,6 +10,7 @@ resolvers += Resolver.mavenLocal
 libraryDependencies += "org.apache.spark" %% "spark-core" % "2.1.0" % "provided"
 libraryDependencies += "com.chymeravr.schemas" % "schemas" % "0.1-SNAPSHOT"
 libraryDependencies += "com.chymeravr.pipeline" % "eventjoin" % "1.0-SNAPSHOT"
+libraryDependencies += "org.scalaj" % "scalaj-http_2.11" % "2.3.0"
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs@_*) => MergeStrategy.discard
