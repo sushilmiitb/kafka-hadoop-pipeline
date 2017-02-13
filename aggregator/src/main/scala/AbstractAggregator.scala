@@ -9,6 +9,7 @@ import java.util.Base64
 import com.chymeravr.dfs.records.{HourlyDimension, HourlyTimestamp, Metrics}
 import com.chymeravr.schemas.eventreceiver.EventType
 import com.chymeravr.schemas.kafka.AttributedEvent
+import com.chymeravr.schemas.serving.{ImpressionInfo, PricingModel}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.log4j.Logger
 import org.apache.spark.{SparkConf, SparkContext}
@@ -91,7 +92,7 @@ abstract class AbstractAggregator extends Serializable {
   def calculateMetrics(event: AttributedEvent): (HourlyDimension, Metrics) = {
     val ts = event.getServingLog.timestamp
     val impressionInfo = event.servingLog.impressionInfo
-    val serveTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), ZoneId.of("UTC"))
+    val serveTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), utcId)
     val dimension = new HourlyDimension(new HourlyTimestamp(serveTime.getYear.toShort,
       serveTime.getMonth.getValue.toShort, serveTime.getDayOfMonth.toShort, serveTime.getHour.toShort),
       getId(event))
@@ -99,23 +100,24 @@ abstract class AbstractAggregator extends Serializable {
     val metrics = event.eventLog.eventType match {
       case EventType.AD_CLICK =>
         val m = new Metrics()
+        if (impressionInfo.pricingModel == PricingModel.CPC) m.setAmount(getAmount(impressionInfo))
         m.setClicks(1)
-        m.setAmount(impressionInfo.costPrice)
       case EventType.AD_SHOW =>
         val m = new Metrics()
+        if (impressionInfo.pricingModel == PricingModel.CPM) m.setAmount(getAmount(impressionInfo))
         m.setImpressions(1)
-        m.setAmount(impressionInfo.costPrice)
       case EventType.AD_CLOSE => val m = new Metrics(); m.setClose(1)
       case EventType.ERROR => val m = new Metrics(); m.setErrors(1)
     }
 
-    metrics.setAmount(event.getServingLog.getImpressionInfo.getCostPrice)
     (dimension, metrics)
   }
 
   def getId(attributedEvent: AttributedEvent): String
 
   def process(records: Iterator[(HourlyDimension, Metrics)])
+
+  def getAmount(impressionInfo: ImpressionInfo): Double
 
   def parseEvent(line: String): Try[AttributedEvent] = {
     Try {
@@ -127,7 +129,7 @@ abstract class AbstractAggregator extends Serializable {
       event
     } match {
       case Success(lines) => Success(lines)
-      case Failure(ex) => println(s"Problem rendering URL content: $ex"); Failure(ex)
+      case Failure(ex) => println(s"Problem deserializing content: $ex"); Failure(ex)
     }
   }
 }
