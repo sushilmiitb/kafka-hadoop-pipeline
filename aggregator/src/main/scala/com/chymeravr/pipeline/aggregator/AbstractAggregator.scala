@@ -1,3 +1,5 @@
+package com.chymeravr.pipeline.aggregator
+
 /**
   * Created by rubbal on 4/2/17.
   */
@@ -84,9 +86,9 @@ abstract class AbstractAggregator extends Serializable {
       metrics.setClose(a.close + b.close)
     })
 
-    process(aggregates.toLocalIterator)
+    processParallel(aggregates.toLocalIterator)
     logger.info("Shut down app")
-
+    postProcessing()
   }
 
   def calculateMetrics(event: AttributedEvent): (HourlyDimension, Metrics) = {
@@ -115,7 +117,9 @@ abstract class AbstractAggregator extends Serializable {
 
   def getId(attributedEvent: AttributedEvent): String
 
-  def process(records: Iterator[(HourlyDimension, Metrics)])
+  def processParallel(records: Iterator[(HourlyDimension, Metrics)])
+
+  def postProcessing(): Unit
 
   def getAmount(impressionInfo: ImpressionInfo): Double
 

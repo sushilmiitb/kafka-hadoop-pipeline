@@ -1,4 +1,7 @@
+package com.chymeravr.pipeline.aggregator
+
 import com.chymeravr.dfs.records.{HourlyDimension, Metrics}
+import com.chymeravr.pipeline.DbProcessor
 import com.chymeravr.schemas.kafka.AttributedEvent
 import com.chymeravr.schemas.serving.ImpressionInfo
 
@@ -10,10 +13,12 @@ object PlacementEventAggregator extends AbstractAggregator {
     attributedEvent.servingLog.placementId
   }
 
-  override def process(records: Iterator[(HourlyDimension, Metrics)]): Unit = {
+  override def processParallel(records: Iterator[(HourlyDimension, Metrics)]): Unit = {
     val processor = new DbProcessor("13.93.217.168", 5432, "analytics", "analytics", "an@lytics")
     processor.insertOrUpdate(records, "placement_metrics")
   }
 
   override def getAmount(impressionInfo: ImpressionInfo): Double = impressionInfo.sellingPrice
+
+  override def postProcessing(): Unit = ???
 }

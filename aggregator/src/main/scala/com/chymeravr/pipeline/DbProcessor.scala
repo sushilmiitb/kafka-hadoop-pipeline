@@ -1,3 +1,5 @@
+package com.chymeravr.pipeline
+
 import java.sql.{BatchUpdateException, DriverManager}
 
 import com.chymeravr.dfs.records.{HourlyDimension, Metrics}
