@@ -36,7 +36,7 @@ class SupplyAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsD
 
       updateMetrics(placementMetrics, "publisher_placement")
       updateMetrics(appMetrics, "publisher_app")
-      
+
     } match {
       case Success(_) =>
       case Failure(ex: BatchUpdateException) => ex.getNextException.printStackTrace()
@@ -61,13 +61,17 @@ class SupplyAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsD
     val placementMetricMap = new mutable.HashMap[PlacementObject, MetricObject]()
     val placementMeta = fetchPlacementMeta()
     while (resultSet.next()) {
-      placementMetricMap.put(
-        placementMeta(resultSet.getString("id")),
-        new MetricObject(
-          resultSet.getInt("impressions"),
-          resultSet.getInt("clicks"),
-          resultSet.getDouble("earnings")
-        ))
+      try {
+        placementMetricMap.put(
+          placementMeta(resultSet.getString("id")),
+          new MetricObject(
+            resultSet.getInt("impressions"),
+            resultSet.getInt("clicks"),
+            resultSet.getDouble("earnings")
+          ))
+      } catch {
+        case ex: Throwable => println(ex.getMessage)
+      }
     }
     placementMetricMap
   }
@@ -106,7 +110,6 @@ class SupplyAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsD
        FROM publisher_app app, publisher_placement pl, chym_user_profile chym_user
        WHERE pl.app_id = app.id AND app.user_id = chym_user.user_id;
       """
-
     )
     val resultSet = selectMeta.executeQuery()
     val placementMetaMap = new mutable.HashMap[String, PlacementObject]()
