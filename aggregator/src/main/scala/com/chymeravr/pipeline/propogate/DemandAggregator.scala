@@ -69,15 +69,19 @@ class DemandAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsD
     val adMetricMap = new mutable.HashMap[AdObject, MetricObject]()
     val adMeta = fetchAdMeta()
     while (resultSet.next()) {
-      adMetricMap.put(
-        adMeta(resultSet.getString("id")),
-        new MetricObject(
-          resultSet.getInt("impressions"),
-          resultSet.getInt("clicks"),
-          resultSet.getInt("errors"),
-          resultSet.getInt("closes"),
-          resultSet.getDouble("burn")
-        ))
+      try {
+        adMetricMap.put(
+          adMeta(resultSet.getString("id")),
+          new MetricObject(
+            resultSet.getInt("impressions"),
+            resultSet.getInt("clicks"),
+            resultSet.getInt("errors"),
+            resultSet.getInt("closes"),
+            resultSet.getDouble("burn")
+          ))
+      } catch {
+        case e: Throwable => e.printStackTrace();
+      }
     }
     adMetricMap
   }
