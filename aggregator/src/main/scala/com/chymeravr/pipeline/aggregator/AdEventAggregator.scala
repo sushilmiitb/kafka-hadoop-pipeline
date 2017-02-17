@@ -14,7 +14,7 @@ object AdEventAggregator extends AbstractAggregator {
   val port = 5432
 
   override def getId(attributedEvent: AttributedEvent): String = {
-    attributedEvent.servingLog.impressionInfo.adId
+    attributedEvent.impressionLog.impressionInfo.adId
   }
 
   override def processParallel(records: Iterator[(HourlyDimension, Metrics)]): Unit = {

@@ -2,21 +2,23 @@ package com.chymeravr.analytics.eventjoin;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.chymeravr.schemas.eventreceiver.EventLog;
-import com.chymeravr.schemas.kafka.AttributedEvent;
-import com.chymeravr.schemas.serving.ImpressionLog;
+import com.chymeravr.schemas.serving.ImpressionInfo;
+import com.chymeravr.schemas.serving.ResponseLog;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.JoinWindows;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -43,30 +45,32 @@ public class Job {
         kafkaStreamProps.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         kafkaStreamProps.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
 
-        String eventTopicName = config.getString("eventTopic");
-        String serverTopicName = config.getString("impressionTopic");
-        String joinedTopicName = config.getString("joinedTopic");
-        int joinWindow = config.getInt("joinWindow");
+        String responseTopicName = config.getString("responseLogTopic");
+        String impressionTopicName = config.getString("impressionTopic");
 
         KStreamBuilder builder = new KStreamBuilder();
-        KStream<String, String> events = builder.stream(eventTopicName);
-        KStream<String, String> serve = builder.stream(serverTopicName);
+        KStream<String, String> responseLogs = builder.stream(responseTopicName);
 
-        KStream<String, String> joinedEvent = events.join(
-                serve,
-                (eventLogSer, serveLogSer) -> {
+        KStream<String, String> impressionStream = responseLogs.flatMap(
+                (key, value) -> {
+                    List<KeyValue<String, String>> impressions = new ArrayList<>();
                     try {
-                        ImpressionLog impressionLog = Utils.deserializeBase64Thrift(ImpressionLog.class, serveLogSer);
-                        EventLog eventLog = Utils.deserializeBase64Thrift(EventLog.class, eventLogSer);
-                        return Utils.serializeBase64Thrift(new AttributedEvent(impressionLog, eventLog));
+                        ResponseLog responseLog = Utils.deserializeBase64Thrift(ResponseLog.class, value);
+                        Map<String, ImpressionInfo> impressionInfoMap = responseLog.getImpressionInfoMap();
+                        for (Map.Entry<String, ImpressionInfo> impressionInfoEntry : impressionInfoMap.entrySet()) {
+                            impressions.add(new KeyValue<>(
+                                    impressionInfoEntry.getKey(),
+                                    Utils.serializeBase64Thrift(impressionInfoEntry.getValue())
+                            ));
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    return null;
-                },
-                JoinWindows.of(joinWindow));
+                    return impressions;
+                });
 
-        joinedEvent.to(joinedTopicName);
+
+        impressionStream.to(impressionTopicName);
 
         // Build the topology and start processing
         KafkaStreams streams = new KafkaStreams(builder, kafkaStreamProps);

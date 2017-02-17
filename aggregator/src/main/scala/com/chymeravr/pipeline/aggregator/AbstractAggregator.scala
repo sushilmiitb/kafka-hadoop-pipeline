@@ -70,7 +70,7 @@ abstract class AbstractAggregator extends Serializable {
     val parsedEvents = events.filter(_.isSuccess)
     var filteredEvents = parsedEvents.map(_.get)
     // Filter older events and no need to aggregate ad_view_metrics
-    filteredEvents = filteredEvents.filter(event => event.getServingLog.timestamp > windowStartTimeEpoch &&
+    filteredEvents = filteredEvents.filter(event => event.impressionLog.timestamp > windowStartTimeEpoch &&
       event.eventLog.eventType != EventType.AD_VIEW_METRICS)
 
     // Dedupe events by key and take the head of all events
@@ -92,8 +92,8 @@ abstract class AbstractAggregator extends Serializable {
   }
 
   def calculateMetrics(event: AttributedEvent): (HourlyDimension, Metrics) = {
-    val ts = event.getServingLog.timestamp
-    val impressionInfo = event.servingLog.impressionInfo
+    val ts = event.impressionLog.timestamp
+    val impressionInfo = event.impressionLog.impressionInfo
     val serveTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), utcId)
     val dimension = new HourlyDimension(new HourlyTimestamp(serveTime.getYear.toShort,
       serveTime.getMonth.getValue.toShort, serveTime.getDayOfMonth.toShort, serveTime.getHour.toShort),

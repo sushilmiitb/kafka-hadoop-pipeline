@@ -14,7 +14,7 @@ object PlacementEventAggregator extends AbstractAggregator {
   val port = 5432
 
   override def getId(attributedEvent: AttributedEvent): String = {
-    attributedEvent.servingLog.placementId
+    attributedEvent.impressionLog.placementId
   }
 
   override def processParallel(records: Iterator[(HourlyDimension, Metrics)]): Unit = {
