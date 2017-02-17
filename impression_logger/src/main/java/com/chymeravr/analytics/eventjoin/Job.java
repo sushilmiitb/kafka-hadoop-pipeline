@@ -59,7 +59,7 @@ public class Job {
                         Map<String, ImpressionInfo> impressionInfoMap = responseLog.getImpressionInfoMap();
                         for (Map.Entry<String, ImpressionInfo> impressionInfoEntry : impressionInfoMap.entrySet()) {
                             impressions.add(new KeyValue<>(
-                                    impressionInfoEntry.getKey(),
+                                    impressionInfoEntry.getValue().getServingId(),
                                     Utils.serializeBase64Thrift(impressionInfoEntry.getValue())
                             ));
                         }
