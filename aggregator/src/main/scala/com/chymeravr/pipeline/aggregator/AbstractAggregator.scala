@@ -110,6 +110,7 @@ abstract class AbstractAggregator extends Serializable {
         m.setImpressions(1)
       case EventType.AD_CLOSE => val m = new Metrics(); m.setClose(1)
       case EventType.ERROR => val m = new Metrics(); m.setErrors(1)
+      case _ => new Metrics();
     }
 
     (dimension, metrics)

@@ -118,7 +118,7 @@ class DemandAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsD
       """
         SELECT chym_user.id AS user_id, ad.id AS ad_id, ad.adgroup_id AS adgroup_id, cmp.id AS campaign_id
         FROM advertiser_ad ad, advertiser_adgroup ag, advertiser_campaign cmp, chym_user_profile chym_user
-        WHERE ad.status AND ad.adgroup_id = ag.id AND ag.campaign_id = cmp.id AND cmp.user_id = chym_user.user_id
+        WHERE (ad.status or ad.modified_date > now() - interval '10 days') AND ad.adgroup_id = ag.id AND ag.campaign_id = cmp.id AND cmp.user_id = chym_user.user_id
       """
 
     )
