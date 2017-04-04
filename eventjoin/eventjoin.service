@@ -1,0 +1,12 @@
+[Unit]
+Description=
+
+
+[Service]
+ExecStartPre=-/usr/bin/docker kill dashboard
+ExecStartPre=-/usr/bin/docker rm dashboard
+ExecStart=/usr/bin/docker run --net=host --name dashboard ciportal-prod
+ExecStop=/usr/bin/docker stop dashboard
+
+[Install]
+WantedBy=default.target

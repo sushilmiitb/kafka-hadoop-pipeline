@@ -8,8 +8,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by rubbal on 13/2/17.
   */
-class DemandAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsDbName: String, analyticsUserName: String, analyticsPassword: String,
-                       ciDbHost: String, ciDbPort: Int, ciDbName: String, ciDbuserName: String, ciDbPassword: String) {
+class DemandAggregator(analyticsDbHost: String, analyticsDbPort: Int, analyticsDbName: String, analyticsUserName: String, analyticsPassword: String, ciDbHost: String, ciDbPort: Int, ciDbName: String, ciDbuserName: String, ciDbPassword: String) {
 
   class AdObject(val adId: String, val adgroupId: String, val campaignId: String, val userId: String)
 

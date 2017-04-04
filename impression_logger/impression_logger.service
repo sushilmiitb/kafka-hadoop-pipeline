@@ -1,0 +1,9 @@
+[Unit]
+Description=Impression logger to flatten impressions from request logs
+
+[Service]
+WorkingDirectory=/home/kafkauser/
+ExecStart=/usr/bin/java -jar jars/impression_logger-1.0-SNAPSHOT-jar-with-dependencies.jar -c pipeline/impression_logger/config/impression_logger.config
+
+[Install]
+WantedBy=default.target
