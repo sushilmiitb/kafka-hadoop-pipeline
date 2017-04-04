@@ -1,12 +1,9 @@
 [Unit]
-Description=
-
+Description=Event join to join Impression and AdEvent
 
 [Service]
-ExecStartPre=-/usr/bin/docker kill dashboard
-ExecStartPre=-/usr/bin/docker rm dashboard
-ExecStart=/usr/bin/docker run --net=host --name dashboard ciportal-prod
-ExecStop=/usr/bin/docker stop dashboard
+WorkingDirectory=/home/kafkauser/
+ExecStart=/usr/bin/java -jar jars/eventjoin-1.0-SNAPSHOT-jar-with-dependencies.jar  -c pipeline/eventjoin/config/eventjoin.config
 
 [Install]
 WantedBy=default.target
