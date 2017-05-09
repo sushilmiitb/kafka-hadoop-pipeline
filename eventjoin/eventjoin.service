@@ -1,0 +1,9 @@
+[Unit]
+Description=Event join to join Impression and AdEvent
+
+[Service]
+WorkingDirectory=/home/kafkauser/
+ExecStart=/usr/bin/java -jar jars/eventjoin-1.0-SNAPSHOT-jar-with-dependencies.jar  -c pipeline/eventjoin/config/eventjoin.config
+
+[Install]
+WantedBy=default.target

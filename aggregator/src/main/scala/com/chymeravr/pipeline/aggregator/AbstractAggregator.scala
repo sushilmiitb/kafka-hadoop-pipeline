@@ -59,6 +59,8 @@ abstract class AbstractAggregator extends Serializable {
     fileNamesBuilder = fileNamesBuilder.filter(path => fs.exists(new Path(path)))
     logger.info(f"Existing input folders: $fileNamesBuilder")
 
+    if (fileNamesBuilder.isEmpty) return
+
     val fileNames = fileNamesBuilder.mkString(",").toString
 
     logger.info(f"Current time: $currentDateTime")
@@ -110,6 +112,7 @@ abstract class AbstractAggregator extends Serializable {
         m.setImpressions(1)
       case EventType.AD_CLOSE => val m = new Metrics(); m.setClose(1)
       case EventType.ERROR => val m = new Metrics(); m.setErrors(1)
+      case _ => new Metrics();
     }
 
     (dimension, metrics)

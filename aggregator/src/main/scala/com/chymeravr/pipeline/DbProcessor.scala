@@ -1,6 +1,6 @@
 package com.chymeravr.pipeline
 
-import java.sql.{BatchUpdateException, DriverManager}
+import java.sql.{BatchUpdateException, Connection, DriverManager}
 
 import com.chymeravr.dfs.records.{HourlyDimension, Metrics}
 
@@ -12,9 +12,10 @@ import scala.util.{Failure, Try}
 class DbProcessor(dbHost: String, dbPort: Int, dbName: String, userName: String, password: String) {
 
   def insertOrUpdate(records: Iterator[(HourlyDimension, Metrics)], tableName: String): Unit = {
+    var connection: Connection = null
     Try {
       Class.forName("org.postgresql.Driver")
-      val connection = DriverManager.getConnection(f"jdbc:postgresql://$dbHost:$dbPort/$dbName", userName, password)
+      connection = DriverManager.getConnection(f"jdbc:postgresql://$dbHost:$dbPort/$dbName", userName, password)
       connection.setAutoCommit(false)
       val statement = connection.prepareStatement(
         f"""
@@ -32,6 +33,7 @@ class DbProcessor(dbHost: String, dbPort: Int, dbName: String, userName: String,
       """.stripMargin)
 
       records.foreach(x => {
+        println(x)
         val dimension = x._1
         val metrics = x._2
         statement.setString(1, dimension.getObjectId)
@@ -54,8 +56,12 @@ class DbProcessor(dbHost: String, dbPort: Int, dbName: String, userName: String,
         statement.addBatch()
       })
 
+      println("Db Processing started")
       statement.executeBatch()
+      println("Db batch executed")
       connection.commit()
+      println("Db Processing committed")
+
     } match {
       case Failure(ex: BatchUpdateException) =>
         val exceptions = ex.iterator()
@@ -64,5 +70,7 @@ class DbProcessor(dbHost: String, dbPort: Int, dbName: String, userName: String,
         }
       case x => x
     }
+
+    if (connection != null) connection.close()
   }
 }

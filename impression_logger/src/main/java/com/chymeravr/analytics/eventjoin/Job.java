@@ -3,6 +3,7 @@ package com.chymeravr.analytics.eventjoin;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.chymeravr.schemas.serving.ImpressionInfo;
+import com.chymeravr.schemas.serving.ImpressionLog;
 import com.chymeravr.schemas.serving.ResponseLog;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
@@ -58,9 +59,21 @@ public class Job {
                         ResponseLog responseLog = Utils.deserializeBase64Thrift(ResponseLog.class, value);
                         Map<String, ImpressionInfo> impressionInfoMap = responseLog.getImpressionInfoMap();
                         for (Map.Entry<String, ImpressionInfo> impressionInfoEntry : impressionInfoMap.entrySet()) {
-                            impressions.add(new KeyValue<>(
+                            ImpressionInfo impressionInfo = impressionInfoEntry.getValue();
+                            ImpressionLog impressionLog = new ImpressionLog(
+                                    responseLog.getTimestamp(),
+                                    responseLog.getRequestId(),
+                                    responseLog.getSdkVersion(),
+                                    responseLog.getExperimentIds(),
+                                    responseLog.getRequestInfo(),
+                                    responseLog.getResponseCode(),
                                     impressionInfoEntry.getKey(),
-                                    Utils.serializeBase64Thrift(impressionInfoEntry.getValue())
+                                    impressionInfo
+                            );
+
+                            impressions.add(new KeyValue<>(
+                                    impressionInfo.getServingId(),
+                                    Utils.serializeBase64Thrift(impressionLog)
                             ));
                         }
                     } catch (Exception e) {

@@ -1,0 +1,12 @@
+[Unit]
+Description=Connector to write to HDFS
+
+[Service]
+User=kafkauser
+Group=kafkauser
+Environment=CLASSPATH=/home/kafkauser/connect/lib/*
+WorkingDirectory=/home/kafkauser/connect
+ExecStart=/usr/bin/connect-standalone connect-standalone.properties hdfs.properties
+
+[Install]
+WantedBy=default.target
